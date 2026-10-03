@@ -1,0 +1,654 @@
+{
+  "schemaVersion": 1,
+  "skillVersion": "2.1.1",
+  "updatedAt": "2026-09-29T10:20:00-03:00",
+  "matcherFlags": "iu",
+  "categories": [
+    {
+      "id": "consolidar-lojas-duplicadas",
+      "tag": "categoria:consolidar-lojas-duplicadas",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/13-consolidar-lojas-duplicadas.md",
+      "priority": 8,
+      "matcher": {
+        "signalsAll": [
+          "derived:multiple-lp-stores-same-owner",
+          "derived:single-active-lp-purchase",
+          "derived:useful-state-split-between-stores"
+        ]
+      },
+      "requiredEvidence": [
+        "identidade e owner unicos",
+        "timeline completa de compras LP",
+        "todas as stores e journeys",
+        "conexoes Shopee e produtos por store",
+        "assets e filhos por store",
+        "zero publicacao na store superseded",
+        "preview destrutivo com IDs e cascades"
+      ],
+      "approval": "owner-go+destructive-go",
+      "verification": [
+        "uma store principal vinculada a compra ativa",
+        "conexao e fase principal preservadas",
+        "assets e historicos uteis transferidos",
+        "refund historico preservado",
+        "stores superseded ausentes",
+        "ticket To Test relido"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "conexao Shopee na store antiga e compra/logo na duplicada",
+        "recompra ativa, store conectada e store refundada historica"
+      ],
+      "counterExamples": [
+        "duas compras LP ativas independentes",
+        "duplicada com produtos ou publicacao",
+        "duas conexoes Shopee distintas",
+        "owners diferentes ou identidade ambigua",
+        "refund sem recompra ativa"
+      ]
+    },
+    {
+      "id": "acesso-produto-reembolsado",
+      "tag": "categoria:acesso-produto-reembolsado",
+      "kind": "playbook",
+      "status": "draft",
+      "task": "tarefas/08-acesso-produto-reembolsado.md",
+      "priority": 5,
+      "matcher": {
+        "signalsAny": [
+          "derived:requested_product_access_refunded_without_later_active_entitlement"
+        ]
+      },
+      "requiredEvidence": [
+        "produto solicitado identificado",
+        "refund relacionado a esse produto",
+        "linha do tempo completa sem compra posterior ativa equivalente",
+        "nenhuma outra fonte vigente do mesmo entitlement"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "nota interna relida",
+        "status Done resolvido ao vivo e relido",
+        "nenhuma mensagem publica ou alteracao de conta"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "pessoa com compra SLL reembolsada e sem outra fonte SLL"
+      ],
+      "counterExamples": [
+        "MSL antigo refunded com SLL/MSL posterior ativo",
+        "Loja Pronta refunded com SLL ativo",
+        "refund de produto diferente do acesso solicitado"
+      ]
+    },
+    {
+      "id": "refunded-cleanup",
+      "tag": "categoria:refunded-cleanup",
+      "kind": "playbook",
+      "status": "active",
+      "task": "tarefas/04-refunded-cleanup.md",
+      "priority": 10,
+      "matcher": {
+        "textRegex": [
+          "refund|reembols[oa]|estornad[oa]|cancelad[oa]"
+        ],
+        "signalsAny": [
+          "session.customData.has_refund=true"
+        ]
+      },
+      "requiredEvidence": [
+        "confirmar refund na compra",
+        "comparar data do ticket com data do refund"
+      ],
+      "approval": "owner-go+destructive-go",
+      "verification": [
+        "estado real da compra relido",
+        "resultado da limpeza conferido",
+        "status final do ticket relido"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "pedido de chargeback sem refund efetivado",
+        "ticket de acesso exige avaliacao por produto antes de qualquer cleanup",
+        "refund historico com compra posterior ativa equivalente"
+      ]
+    },
+    {
+      "id": "refund-reclame-chargeback",
+      "tag": "categoria:refund-reclame-chargeback",
+      "kind": "playbook",
+      "status": "active",
+      "task": "tarefas/06-refund-reclame-chargeback.md",
+      "priority": 15,
+      "matcher": {
+        "textRegex": [
+          "reclame\\s*aqui|revers[ãa]o\\s*(de\\s*)?(reembolso|refund)|chargeback|liberar?\\s*(o\\s*)?site.*loja"
+        ],
+        "signalsAny": [
+          "tag:Reversão de Reembolso",
+          "tag:Reclame Aqui",
+          "tag:Acompanhamento"
+        ]
+      },
+      "requiredEvidence": [
+        "identidade do ticket",
+        "situacao da compra",
+        "destinatario e acao do owner"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "acesso confirmado sem expor segredo",
+        "evento LP Fase 1 verificado quando aplicavel"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "refund ja efetivado e pedido apenas de limpeza"
+      ]
+    },
+    {
+      "id": "acesso-solicitado-pelo-support",
+      "tag": "categoria:acesso-solicitado-pelo-support",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/12-acesso-solicitado-pelo-support.md",
+      "priority": 17,
+      "matcher": {
+        "signalsAll": [
+          "derived:ticket-created-by-support",
+          "derived:explicit-access-request"
+        ]
+      },
+      "requiredEvidence": [
+        "type BUG, initiatedByAgent=true e manuallyAdded=true",
+        "todas as identidades alvo confirmadas",
+        "produto solicitado discriminado por identidade como SLL ou Loja Pronta",
+        "estado atual de conta, entitlement, profile, store e journey relido"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "cada identidade recebeu somente o produto solicitado",
+        "entitlement ou store/journey relidos",
+        "nenhum segredo registrado",
+        "ticket movido para To Test somente quando todos os subcasos estiverem concluidos"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "pedido LP criado pelo Support sem compra LP localizada",
+        "pedido SLL criado pelo Support sem compra/grant SLL localizado",
+        "pedido SLL manual pelo Support sem conta, profile ou grant; canario confirmado"
+      ],
+      "counterExamples": [
+        "ticket criado diretamente pela cliente",
+        "pedido sem produto identificavel",
+        "identidade ambigua",
+        "BOT ou INQUIRY"
+      ]
+    },
+    {
+      "id": "acesso-sll-ja-ativo",
+      "tag": "categoria:acesso-sll-ja-ativo",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/09-acesso-sll-ja-ativo.md",
+      "priority": 18,
+      "matcher": {
+        "signalsAny": [
+          "derived:sll_account_and_entitlement_active"
+        ]
+      },
+      "requiredEvidence": [
+        "identidade confirmada",
+        "auth.users existente",
+        "RPC retorna hasSLL=true",
+        "todos os subcasos do ticket concluidos"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "nota interna relida",
+        "status To Test resolvido ao vivo e relido",
+        "conta e entitlement inalterados"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "pessoas 1, 2, 3 e 5 como diagnosticos individuais"
+      ],
+      "counterExamples": [
+        "ticket multi-identidade ainda possui subcaso pendente",
+        "LP ativa sem fonte SLL",
+        "entitlement hasSLL=false"
+      ]
+    },
+    {
+      "id": "acesso-pix-fora-hotmart",
+      "tag": "categoria:acesso-pix-fora-hotmart",
+      "kind": "playbook",
+      "status": "active",
+      "task": "tarefas/10-acesso-pix-fora-hotmart.md",
+      "priority": 19,
+      "matcher": {
+        "signalsAll": [
+          "derived:no_applicable_hotmart_purchase",
+          "owner_or_sheet:pix_outside_hotmart"
+        ]
+      },
+      "requiredEvidence": [
+        "identidade confirmada",
+        "historico Hotmart completo",
+        "planilha PIX ou confirmacao explicita do owner",
+        "produto/oferta, entitlement e duracao vendidos identificados",
+        "mecanismo de expiracao automatica quando temporario"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "conta e profile relidos",
+        "RPC retorna hasSLL=true",
+        "grant com origem auditavel",
+        "nenhuma mensagem externa sem aprovacao"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "pagamento PIX externo informado pelo owner",
+        "canario individual com SLL vitalicio confirmado, conta criada e hasSLL=true"
+      ],
+      "counterExamples": [
+        "PIX Hotmart CANCELLED",
+        "PIX de produto diferente",
+        "pagamento sem produto/oferta identificados",
+        "acesso de um ano representado por sll_grants permanente"
+      ]
+    },
+    {
+      "id": "reset-senha",
+      "tag": "categoria:reset-senha",
+      "kind": "support",
+      "status": "active",
+      "task": null,
+      "priority": 20,
+      "matcher": {
+        "textRegex": [
+          "reset(ar|a)|redefini(r|ç[aã]o)|senha|link.*recuper",
+          "sem\\s+acesso|senha\\s+incorreta|n[aã]o\\s+recebi.*(email|link)"
+        ]
+      },
+      "requiredEvidence": [
+        "confirmar que o problema e credencial e nao ausencia de provisionamento"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "rota Support aplicada sem mensagem externa"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "compra ativa sem usuario provisionado"
+      ]
+    },
+    {
+      "id": "nao-e-aluna-lp",
+      "tag": "skill:nao-e-aluna-lp",
+      "kind": "support",
+      "status": "active",
+      "task": null,
+      "priority": 25,
+      "matcher": {
+        "signalsAny": [
+          "derived:lp_purchase_not_found"
+        ]
+      },
+      "requiredEvidence": [
+        "cross-check email e telefone",
+        "IDs LP vigentes",
+        "nenhuma compra complete/approved encontrada"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "rota Support aplicada sem provisionamento"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "compra localizada por telefone apos email divergir"
+      ]
+    },
+    {
+      "id": "acesso-nao-provisionado",
+      "tag": "categoria:acesso-nao-provisionado",
+      "kind": "playbook",
+      "status": "active",
+      "task": "tarefas/01-acesso-nao-provisionado.md",
+      "priority": 30,
+      "matcher": {
+        "textRegex": [
+          "liberar\\s*acesso|liberaç[aã]o\\s*(do\\s*)?site\\s*da\\s*loja|acesso.*loja\\s*pronta"
+        ]
+      },
+      "requiredEvidence": [
+        "identidade em cascata email/telefone",
+        "compra LP ativa",
+        "estado atual do provisionamento"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "acesso relido",
+        "evento LP Fase 1 verificado quando aplicavel"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "senha existente apenas precisa de reset"
+      ]
+    },
+    {
+      "id": "gpt-sll-upload-limite-zero",
+      "tag": "categoria:gpt-sll-upload-limite-zero",
+      "kind": "support",
+      "status": "validated",
+      "task": "tarefas/14-orientar-upload-gpt-sll.md",
+      "priority": 35,
+      "matcher": {
+        "textRegex": [
+          "limite\\s*m[aá]ximo\\s*de\\s*0\\s*carregamentos|0\\s*carregamentos\\s*simult[aâ]neos|GPT\\s*SLL.*(imagem|upload|carregar)"
+        ]
+      },
+      "requiredEvidence": [
+        "erro ocorre no ChatGPT/GPT SLL",
+        "nenhum endpoint da Escala Shop falhou",
+        "ticket lista todas as identidades afetadas"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "nota interna presente",
+        "ticket relido em To Test",
+        "atribuicao ao Support"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "falha de upload dentro de uma tela hospedada pela Escala Shop"
+      ]
+    },
+    {
+      "id": "alterar-logo-nome-loja",
+      "tag": "categoria:alterar-logo-nome-loja",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/03-alterar-logo-nome-loja.md",
+      "priority": 40,
+      "matcher": {
+        "textRegex": [
+          "(mudar|alterar|corrigir|trocar)\\s*(a\\s*)?logo|logo\\s*(com\\s*)?(nome\\s*)?(errad[oa]|incorret[oa])|(mudar|alterar|corrigir)\\s*(o\\s*)?nome\\s*(da\\s*)?loja|logo\\s*pr[oó]pria|logo\\s*que\\s*enviei|centralizar\\s*(a\\s*)?logo"
+        ]
+      },
+      "requiredEvidence": [
+        "feedback concreto: nome final quando houver, mudanca visual e referencia/anexo quando aplicavel",
+        "midia obrigatoria inspecionada visualmente",
+        "estado de selecao/publicacao, assets e cota de geracao lidos",
+        "para loja publicada: rota Shopee e precondicoes comprovadas em preview"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "ramo de selecao/publicacao confirmado",
+        "sem publicacao: tres opcoes prontas e disponiveis para a aluna",
+        "com publicacao: estado local e vitrine Shopee conferidos visualmente"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "canário concluído com rename e três novas logos",
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "imagem errada de um produto publicado",
+        "pedido generico sem feedback concreto",
+        "logo propria sem arquivo utilizavel",
+        "pedido para mudar somente o nome publico da Shopee"
+      ]
+    },
+    {
+      "id": "foto-ai-errada-anuncio-publicado",
+      "tag": "categoria:foto-ai-errada-anuncio-publicado",
+      "kind": "playbook",
+      "status": "active",
+      "task": "tarefas/05-foto-ai-errada-anuncio-publicado.md",
+      "priority": 45,
+      "matcher": {
+        "textRegex": [
+          "foto\\s*(errad[oa]|feia|estranha|n[aã]o\\s*(bate|combina))|imagem\\s*(errad[oa]|feia|estranha)|an[uú]ncio\\s*com\\s*(foto|imagem)|produto\\s*(diferente|n[aã]o\\s*[ée])|(alterar|corrigir|trocar|mudar)\\s*(a\\s*)?foto"
+        ]
+      },
+      "requiredEvidence": [
+        "imagem reclamada",
+        "imagem do fornecedor",
+        "imagem atual",
+        "identificador real do anuncio"
+      ],
+      "approval": "owner-go+two-stage",
+      "verification": [
+        "comparacao visual aprovada",
+        "estado real do anuncio conferido apos push"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "logo da loja errada"
+      ]
+    },
+    {
+      "id": "produtos-variantes-fornecedor",
+      "tag": "categoria:produtos-variantes-fornecedor",
+      "kind": "playbook",
+      "status": "active",
+      "task": "tarefas/02-produtos-variantes-fornecedor.md",
+      "priority": 50,
+      "matcher": {
+        "textRegex": [
+          "produtos?\\s*(iguais|repetid[oa]s|duplicad[oa]s|mesm[oa]s)|produto[s]?\\s*s[aã]o\\s*iguais|(\\d+)\\s*produtos?\\s*(iguais|repetid[oa]s)"
+        ]
+      },
+      "requiredEvidence": [
+        "SKUs e variantes consultados no banco",
+        "fornecedor confirmado"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "diferenca entre SKUs demonstrada ou defeito reclassificado como FIX"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "mesmo SKU inserido duas vezes por defeito"
+      ]
+    },
+    {
+      "id": "shopee-baniu-excluiu",
+      "tag": "categoria:shopee-baniu-excluiu",
+      "kind": "playbook",
+      "status": "active",
+      "task": "tarefas/07-shopee-baniu-excluiu.md",
+      "priority": 55,
+      "matcher": {
+        "textRegex": [
+          "an[uú]ncio.*(exclu|removid|banid)|produto.*(exclu|removid|banid)|loja.*(banid|suspens|inativ)|produtos?.*(n[aã]o\\s+aparece|sumir)"
+        ]
+      },
+      "requiredEvidence": [
+        "status real consultado na Shopee",
+        "estado salvo comparado com estado remoto",
+        "produto removido e fornecedor canônico identificados quando reposição for considerada",
+        "candidato do mesmo fornecedor triado contra marca/PI e semelhança material"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "conclusao baseada no status remoto, nao apenas no relato",
+        "nenhum candidato de fornecedor diferente é apresentado ou selecionado",
+        "reposição permanece somente em investigação até playbook/canário autorizados"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "como intencao secundaria"
+      ],
+      "counterExamples": [
+        "anuncio apenas em revisao"
+      ]
+    },
+    {
+      "id": "shopee-listing-replacement",
+      "tag": "categoria:shopee-listing-replacement",
+      "kind": "playbook",
+      "status": "active",
+      "task": "tarefas/11-repor-anuncio-shopee.md",
+      "priority": 56,
+      "matcher": {
+        "signalsAny": [
+          "derived:shopee-replacement-ready"
+        ]
+      },
+      "requiredEvidence": [
+        "item exato confirmado ao vivo como SHOPEE_DELETE/BANNED ou SELLER_DELETE com gate contextual completo",
+        "store_product removido e fornecedor canonico identificados",
+        "fornecedor com politica de reposicao vigente",
+        "produto local com whitelist ativa para o mesmo fornecedor"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "novo anuncio relido na Shopee",
+        "campanha de desconto relida",
+        "nota interna relida e lane To Test resolvida ao vivo",
+        "nenhuma mensagem publica ou transicao para Done"
+      ],
+      "risks": [
+        "external_write",
+        "shopee_publish",
+        "gleap_internal_write"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "cross_supplier_replacement",
+        "republish_removed_product"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "SHOPEE_DELETE reposto e verificado ao vivo",
+        "SELLER_DELETE com gate contextual completo reposto e verificado ao vivo"
+      ],
+      "counterExamples": [
+        "status NORMAL ou REVIEWING",
+        "SELLER_DELETE sem ticket BUG da cliente, GO do owner ou contagem ao vivo exatamente igual a um",
+        "produto sem whitelist ativa",
+        "fornecedor divergente ou ambiguo",
+        "ticket de exemplo com seis SELLER_DELETE: contagem diferente de um bloqueia o gate contextual",
+        "ticket de exemplo sem loja Shopee vinculada: reposicao bloqueada",
+        "item REVIEWING: aguardar decisao remota, sem publicar substituto"
+      ]
+    },
+    {
+      "id": "avancar-etapa-kyc",
+      "tag": "categoria:avancar-etapa-kyc",
+      "kind": "investigation",
+      "status": "draft",
+      "task": null,
+      "priority": 70,
+      "matcher": {
+        "textRegex": [
+          "kyc|cadastro.*aprovad.*shopee|em\\s+verificaç[aã]o|avan[çc]ar\\s+etapa"
+        ]
+      },
+      "requiredEvidence": [
+        "print ou status real KYC",
+        "fase local",
+        "estado da integracao"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "causa e transicao segura ainda precisam ser ensinadas"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "acesso nao provisionado antes do KYC"
+      ]
+    },
+    {
+      "id": "fase-travada",
+      "tag": "categoria:fase-travada",
+      "kind": "investigation",
+      "status": "draft",
+      "task": null,
+      "priority": 75,
+      "matcher": {
+        "textRegex": [
+          "fase\\s+travada|loja\\s+travada|n[aã]o\\s+avan[çc]a|pipeline.*n[aã]o\\s+aparece"
+        ]
+      },
+      "requiredEvidence": [
+        "fase local",
+        "compra",
+        "integracao",
+        "ultimo evento valido"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "causa ainda precisa ser separada em playbook, FIX ou policy"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "refund confirmado que exige cleanup"
+      ]
+    },
+    {
+      "id": "acelerar-processo",
+      "tag": "categoria:acelerar-processo",
+      "kind": "policy",
+      "status": "draft",
+      "task": null,
+      "priority": 80,
+      "matcher": {
+        "textRegex": [
+          "acelerar|priorizar|urgente|demorando|atraso.*entrega"
+        ]
+      },
+      "requiredEvidence": [
+        "SLA",
+        "etapa atual",
+        "motivo e impacto",
+        "decisao do owner"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "politica de priorizacao ainda precisa ser definida"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "caso ilustrativo"
+      ],
+      "counterExamples": [
+        "erro tecnico reproduzivel"
+      ]
+    }
+  ]
+}
