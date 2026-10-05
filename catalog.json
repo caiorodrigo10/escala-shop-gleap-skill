@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "skillVersion": "2.1.1",
-  "updatedAt": "2026-09-29T10:20:00-03:00",
+  "skillVersion": "3.1.0",
+  "updatedAt": "2026-10-05T13:30:00-03:00",
   "matcherFlags": "iu",
   "categories": [
     {
@@ -47,6 +47,11 @@
         "duas conexoes Shopee distintas",
         "owners diferentes ou identidade ambigua",
         "refund sem recompra ativa"
+      ],
+      "problemTag": "cat:13-lojas-duplicadas",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:consolidar-lojas-duplicadas"
       ]
     },
     {
@@ -81,6 +86,11 @@
         "MSL antigo refunded com SLL/MSL posterior ativo",
         "Loja Pronta refunded com SLL ativo",
         "refund de produto diferente do acesso solicitado"
+      ],
+      "problemTag": "cat:08-acesso-reembolsado",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:acesso-produto-reembolsado"
       ]
     },
     {
@@ -116,6 +126,11 @@
         "pedido de chargeback sem refund efetivado",
         "ticket de acesso exige avaliacao por produto antes de qualquer cleanup",
         "refund historico com compra posterior ativa equivalente"
+      ],
+      "problemTag": "cat:04-refunded-cleanup",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:refunded-cleanup"
       ]
     },
     {
@@ -151,6 +166,11 @@
       ],
       "counterExamples": [
         "refund ja efetivado e pedido apenas de limpeza"
+      ],
+      "problemTag": "cat:06-refund-chargeback",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:refund-reclame-chargeback"
       ]
     },
     {
@@ -190,6 +210,11 @@
         "pedido sem produto identificavel",
         "identidade ambigua",
         "BOT ou INQUIRY"
+      ],
+      "problemTag": "cat:12-acesso-pelo-support",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:acesso-solicitado-pelo-support"
       ]
     },
     {
@@ -224,6 +249,11 @@
         "ticket multi-identidade ainda possui subcaso pendente",
         "LP ativa sem fonte SLL",
         "entitlement hasSLL=false"
+      ],
+      "problemTag": "cat:09-sll-ja-ativo",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:acesso-sll-ja-ativo"
       ]
     },
     {
@@ -263,6 +293,11 @@
         "PIX de produto diferente",
         "pagamento sem produto/oferta identificados",
         "acesso de um ano representado por sll_grants permanente"
+      ],
+      "problemTag": "cat:10-pix-fora-hotmart",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:acesso-pix-fora-hotmart"
       ]
     },
     {
@@ -291,6 +326,11 @@
       ],
       "counterExamples": [
         "compra ativa sem usuario provisionado"
+      ],
+      "problemTag": "cat:00-reset-senha",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:reset-senha"
       ]
     },
     {
@@ -320,6 +360,11 @@
       ],
       "counterExamples": [
         "compra localizada por telefone apos email divergir"
+      ],
+      "problemTag": "cat:00-nao-e-aluna-lp",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "skill:nao-e-aluna-lp"
       ]
     },
     {
@@ -350,6 +395,11 @@
       ],
       "counterExamples": [
         "senha existente apenas precisa de reset"
+      ],
+      "problemTag": "cat:01-acesso-nao-provisionado",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:acesso-nao-provisionado"
       ]
     },
     {
@@ -381,6 +431,72 @@
       ],
       "counterExamples": [
         "falha de upload dentro de uma tela hospedada pela Escala Shop"
+      ],
+      "problemTag": "cat:14-gpt-sll-upload",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:gpt-sll-upload-limite-zero"
+      ]
+    },
+    {
+      "id": "sessao-shopee-expirada",
+      "tag": "categoria:sessao-shopee-expirada",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/18-sessao-shopee-expirada-acao-bloqueada.md",
+      "priority": 38,
+      "matcher": {
+        "signalsAll": [
+          "derived:ticket-needs-technical-shopee-action",
+          "derived:shopee-connection-expired"
+        ]
+      },
+      "requiredEvidence": [
+        "acao tecnica Shopee pendente identificada por evidencia (anuncio, item ID, print)",
+        "shopee_connections lida so por datas/status (token_expires_at, connected_at, updated_at), sem tokens",
+        "expiracao confirmada: token vencido ha mais de 30 dias sem renovacao, shopee_refresh_failed ou OAuth em lp_shopee_oauth_attempts sem consumed_at e sem conexao posterior",
+        "mensagens novas da aluna relidas",
+        "lane To test resolvida ao vivo"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "nota interna [interno] relida uma unica vez com bloqueio, pendencias e acao da aluna (reconectar)",
+        "status To test resolvido ao vivo e relido",
+        "tags humanas preservadas + categoria:sessao-shopee-expirada",
+        "nenhuma mensagem visivel para a aluna e nenhuma escrita na Shopee/Supabase",
+        "link de reconexao: https://membros.escalashop.com.br/lojapronta/reconectar-shopee"
+      ],
+      "risks": [
+        "gleap_internal_write"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "keep_open_or_inprogress_without_note",
+        "state_change_via_sql",
+        "select_shopee_tokens"
+      ],
+      "confidence": "low",
+      "owner": "Caio (regra de 2026-10-03 20:11 BRT)",
+      "canary": {
+        "ticket": "4262",
+        "run": "runs/run-2026-10-03-2011.md",
+        "result": "success"
+      },
+      "positiveExamples": [
+        "troca de capa errada + erro fiscal ORIGIN,MEASURE_UNIT com token vencido desde 13/08 e 5 OAuth sem consumed_at (canario #4262)"
+      ],
+      "counterExamples": [
+        "KYC aprovado com loja em pendente_shopee_kyc -> kyc-aprovado-conexao-expirada",
+        "aluna sem loja local/sem conexao (primeiro vinculo, tarefa 00)",
+        "token vencido ha poucas horas sem outro sinal (client renova sob demanda)",
+        "conexao valida -> playbook tecnico da categoria original",
+        "shopee_binding_STATE_CONFLICT"
+      ],
+      "problemTag": "cat:18-sessao-expirada",
+      "defaultStatusTag": "skill:impedido",
+      "legacyTags": [
+        "categoria:sessao-shopee-expirada"
       ]
     },
     {
@@ -392,7 +508,7 @@
       "priority": 40,
       "matcher": {
         "textRegex": [
-          "(mudar|alterar|corrigir|trocar)\\s*(a\\s*)?logo|logo\\s*(com\\s*)?(nome\\s*)?(errad[oa]|incorret[oa])|(mudar|alterar|corrigir)\\s*(o\\s*)?nome\\s*(da\\s*)?loja|logo\\s*pr[oó]pria|logo\\s*que\\s*enviei|centralizar\\s*(a\\s*)?logo"
+          "(mudar|alterar|corrigir|trocar)\\s*(a\\s*)?logo|logo\\s*(com\\s*)?(nome\\s*)?(errad[oa]|incorret[oa])|(mudar|alterar|corrigir)\\s*(o\\s*)?nome\\s*(da\\s*)?loja|logo\\s*pr[oó]pria|logo\\s*que\\s*enviei|centralizar\\s*(a\\s*)?logo|(altera[çc][ãa]o|troca|mudan[çc]a)\\s*(d[oe]\\s*)?nome\\s*(da\\s*)?loja|(trocar|mudar)\\s*(o\\s*)?nome\\s*(da\\s*)?loja"
         ]
       },
       "requiredEvidence": [
@@ -405,7 +521,8 @@
       "verification": [
         "ramo de selecao/publicacao confirmado",
         "sem publicacao: tres opcoes prontas e disponiveis para a aluna",
-        "com publicacao: estado local e vitrine Shopee conferidos visualmente"
+        "com publicacao: estado local e vitrine Shopee conferidos visualmente",
+        "rename: sem Shopee e sem produtos = so as opcoes com o nome novo visiveis (status=ready); na selecao de produtos ou depois = logo_run_id/description_run_id nas versoes novas"
       ],
       "confidence": "low",
       "positiveExamples": [
@@ -417,6 +534,11 @@
         "pedido generico sem feedback concreto",
         "logo propria sem arquivo utilizavel",
         "pedido para mudar somente o nome publico da Shopee"
+      ],
+      "problemTag": "cat:03-logo-nome-loja",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:alterar-logo-nome-loja"
       ]
     },
     {
@@ -448,6 +570,11 @@
       ],
       "counterExamples": [
         "logo da loja errada"
+      ],
+      "problemTag": "cat:05-foto-ia-errada",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:foto-ai-errada-anuncio-publicado"
       ]
     },
     {
@@ -476,6 +603,11 @@
       ],
       "counterExamples": [
         "mesmo SKU inserido duas vezes por defeito"
+      ],
+      "problemTag": "cat:02-variantes-fornecedor",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:produtos-variantes-fornecedor"
       ]
     },
     {
@@ -508,6 +640,11 @@
       ],
       "counterExamples": [
         "anuncio apenas em revisao"
+      ],
+      "problemTag": "cat:07-shopee-baniu-excluiu",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:shopee-baniu-excluiu"
       ]
     },
     {
@@ -559,6 +696,445 @@
         "ticket de exemplo com seis SELLER_DELETE: contagem diferente de um bloqueia o gate contextual",
         "ticket de exemplo sem loja Shopee vinculada: reposicao bloqueada",
         "item REVIEWING: aguardar decisao remota, sem publicar substituto"
+      ],
+      "problemTag": "cat:11-repor-anuncio",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:shopee-listing-replacement"
+      ]
+    },
+    {
+      "id": "shopee-anuncio-nao-qualificado-fundo-limpo",
+      "tag": "categoria:shopee-anuncio-nao-qualificado-fundo-limpo",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/19-anuncio-nao-qualificado-fundo-limpo.md",
+      "priority": 57,
+      "matcher": {
+        "textRegex": [
+          "n[aã]o\\s+qualificad[oa]",
+          "tarefa\\s+para\\s+se\\s+tornar\\s+qualificado",
+          "garanta\\s+um\\s+fundo\\s+limpo",
+          "fundo\\s+(da\\s+)?(foto|imagem)",
+          "borda\\s+branca",
+          "(moldura|margem)\\s+branca",
+          "imagem\\s+(recusada|reprovada|rejeitada)",
+          "foto\\s+(recusada|reprovada|rejeitada)",
+          "produto\\s+diferente.*(foto|imagem)|(foto|imagem).*produto\\s+diferente"
+        ]
+      },
+      "requiredEvidence": [
+        "ticket BUG, detalhe e mídias relidos",
+        "screenshotUrl ou anexo inspecionado visualmente",
+        "motivo da recusa de imagem identificado (fundo, borda, produto diferente ou outro)",
+        "produto identificado ou ausência de identificador registrada",
+        "lane To test resolvida ao vivo"
+      ],
+      "approval": "owner-standing-go",
+      "verification": [
+        "nota interna [interno] relida uma única vez",
+        "status resolvido ao vivo e relido",
+        "tags humanas preservadas + cat:19-imagem-recusada + skill:*",
+        "nenhuma mensagem visível à aluna",
+        "troca de imagem na Shopee só com GO do Caio e conferida ao vivo"
+      ],
+      "risks": [
+        "gleap_internal_write",
+        "shopee_image_swap"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "state_change_via_sql",
+        "shopee_write_outside_image_swap"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "8769: tarefa Shopee 4/5 com Garanta um fundo limpo pendente",
+        "4319: imagem de IA recusada por borda branca",
+        "imagem mostra produto diferente do anunciado"
+      ],
+      "counterExamples": [
+        "produto não identificável e a nota inventa título/item ID",
+        "recusa que não é de imagem (categoria, atributos, fiscal)",
+        "troca de imagem na Shopee sem GO do Caio",
+        "ação técnica com conexão expirada sem seguir tarefa 18"
+      ],
+      "problemTag": "cat:19-imagem-recusada",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:shopee-anuncio-nao-qualificado-fundo-limpo",
+        "cat:19-fundo-limpo"
+      ],
+      "solution": "Categoria única: regenerar a foto correta (Fal) e publicar no lugar da imagem recusada no mesmo produto na Shopee (upload_image + update_item via rota Vercel, GO do Caio); conferir; nota interna + To test. Sem rota/GO: nota + skill:impedido.",
+      "standingAuthorization": "Caio 2026-10-04 15h11: trocar a imagem recusada/errada (Fal + update_item da imagem afetada) sem pedir GO, com produto e imagem identificados com certeza; sem mensagem à aluna e sem DONE; sem a rota Vercel, nota + skill:impedido."
+    },
+    {
+      "id": "shopee-violacao-categoria-incorreta",
+      "tag": "categoria:shopee-violacao-categoria-incorreta",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/20-violacao-categoria-incorreta-shopee.md",
+      "priority": 58,
+      "matcher": {
+        "textRegex": [
+          "informaç[aã]o\\s+de\\s+violaç[aã]o.*categoria\\s+incorreta",
+          "categoria\\s+incorreta.*(bolsa|an[uú]ncio)",
+          "severidade\\s+baixa.*categoria\\s+incorreta"
+        ]
+      },
+      "requiredEvidence": [
+        "print da violação inspecionado",
+        "categoria recomendada transcrita somente quando visível",
+        "loja e anúncios candidatos buscados por owner em store_products/products",
+        "título/item ID citado somente se candidato único e seguro",
+        "conexão consultada somente por datas/status"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "nota interna [interno] relida",
+        "status To test resolvido ao vivo e relido",
+        "tags humanas preservadas + skill:analisado",
+        "nenhuma mensagem visível à aluna",
+        "nenhuma escrita na Shopee ou Supabase"
+      ],
+      "risks": [
+        "gleap_internal_write",
+        "shopee_external_write_blocked"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "shopee_write",
+        "state_change_via_sql",
+        "unsafe_item_identification"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "violação de categoria incorreta com recomendação de categoria no print"
+      ],
+      "counterExamples": [
+        "vários anúncios candidatos sem critério seguro",
+        "print sem categoria recomendada",
+        "conexão expirada tratada como autorização para escrever na Shopee"
+      ],
+      "problemTag": "cat:20-categoria-incorreta",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:shopee-violacao-categoria-incorreta"
+      ]
+    },
+    {
+      "id": "shopee-erro-verificar-loja-usar-selecionada",
+      "tag": "categoria:shopee-erro-verificar-loja-usar-selecionada",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/21-erro-verificar-loja-usar-selecionada.md",
+      "priority": 59,
+      "matcher": {
+        "textRegex": [
+          "n[aã]o\\s+foi\\s+poss[ií]vel\\s+verificar\\s+a\\s+loja",
+          "usar\\s+loja\\s+selecionada"
+        ]
+      },
+      "requiredEvidence": [
+        "print e mídias do ticket inspecionados",
+        "owner e todas as stores/conexões identificados sem registrar e-mail",
+        "binding ativo ou ausência de binding conferido",
+        "journey_state.current_phase e shopee_kyc_status consultados",
+        "stores.shopee_shop_id comparado com connection.shop_id",
+        "regra de LP avançada versus LP sem conexão aplicada"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "LP conectada identificada por binding ou store da jornada + conexão",
+        "diagnóstico registrado por ticket",
+        "nota interna [interno] relida quando write autorizado",
+        "status To test e tags separados e relidos quando write autorizado",
+        "nenhuma mensagem visível",
+        "nenhum binding/shop_id alterado sem GO separado"
+      ],
+      "risks": [
+        "gleap_internal_write",
+        "binding_conflict",
+        "shopee_connection_expired"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "state_change_via_sql",
+        "shopee_write",
+        "merge_stores_without_owner_decision",
+        "claim_root_cause_without_evidence"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "#9274: binding ativo conecta LP avançada à store física; não oferecer outra seleção",
+        " #8770: LP sem conexão/binding e candidata física conectada; aluna pode selecionar candidata"
+      ],
+      "counterExamples": [
+        "IDs divergentes sem fonte de verdade",
+        "binding ativo de outra LP",
+        "nenhuma conexão/candidata disponível"
+      ],
+      "problemTag": "cat:21-erro-verificar-loja",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:shopee-erro-verificar-loja-usar-selecionada"
+      ]
+    },
+    {
+      "id": "shopee-shop-id-divergente-identificar-lp",
+      "tag": "categoria:shopee-shop-id-divergente-identificar-lp",
+      "kind": "playbook",
+      "status": "draft",
+      "provisional": true,
+      "task": "tarefas/23-identificar-loja-lp-shop-id-divergente.md",
+      "priority": 60,
+      "matcher": {
+        "signalsAny": [
+          "derived:stores-shop-id-diff-connection-shop-id",
+          "derived:multiple-shopee-connections-owner"
+        ]
+      },
+      "requiredEvidence": [
+        "owner e stores identificados sem registrar e-mail",
+        "todas as shopee_connections do owner listadas sem tokens",
+        "stores.shopee_shop_id comparado com connection.shop_id",
+        "journey_state.current_phase e shopee_kyc_status lidos",
+        "lp_shopee_bindings e lp_store_registry conferidos",
+        "fonte de verdade ainda não escolhida quando IDs divergem"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "resultado por ticket registrado",
+        "nenhum shop_id escolhido por recência",
+        "nenhuma escrita em stores/shopee_connections/bindings",
+        "pergunta de reconciliação preservada na fila"
+      ],
+      "risks": [
+        "state_conflict",
+        "connection_expired",
+        "binding_reconciliation"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "shopee_write",
+        "state_change_via_sql",
+        "silent_shop_id_replacement",
+        "merge_stores_without_owner_decision"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "uma store e uma conexão com shop IDs divergentes; nenhum binding ativo"
+      ],
+      "counterExamples": [
+        "binding ativo que resolve univocamente lp_store_id→shopee_store_id",
+        "duas conexões do owner com candidatos e binding ativo já conferido",
+        "conexão e stores.shop_id iguais"
+      ],
+      "problemTag": "cat:23-shop-id-divergente",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:shopee-shop-id-divergente-identificar-lp"
+      ]
+    },
+    {
+      "id": "shopee-kyc-aprovado-encaminhar-fase-correspondente",
+      "tag": "categoria:shopee-kyc-aprovado-encaminhar-fase-correspondente",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/22-kyc-aprovado-encaminhar-fase-correspondente.md",
+      "priority": 61,
+      "matcher": {
+        "signalsAll": [
+          "shopee:kyc-approved-live",
+          "local:phase-1.1-profile",
+          "local:kyc-status-null"
+        ]
+      },
+      "requiredEvidence": [
+        "consulta ao vivo real com kyc=approved, shop_status=NORMAL e onboarding_passed=true",
+        "store e shop identificados",
+        "journey_state.current_phase=1.1_perfil",
+        "journey_state.shopee_kyc_status IS NULL",
+        "state_version relida para optimistic locking",
+        "etapa alvo 2.5_shopee_conectada confirmada no código"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "SELECT antes confirmou KYC/live evidence, fase 1.1_perfil, versão e shop por store",
+        "RPC canônica retornou ok=true e new_phase=2.5_shopee_conectada por store",
+        "SELECT depois confirmou KYC approved, fase 2.5 e state_version 2",
+        "nota interna relida, status To test relido e tags humanas preservadas + skill:analisado",
+        "nenhuma mensagem visível"
+      ],
+      "risks": [
+        "gleap_internal_write",
+        "supabase_state_transition",
+        "event_outbox_side_effect"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "manual_sql_update",
+        "shopee_write",
+        "claim_live_approval_without_evidence"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "#10075/#9708/#9605: live approved, local 1.1_perfil/KYC NULL; canário aplicado com GO"
+      ],
+      "counterExamples": [
+        "live pending/incomplete",
+        "connection_failed or refresh failure",
+        "local phase already advanced",
+        "KYC approved only from print without live confirmation"
+      ],
+      "problemTag": "cat:22-kyc-aprovado-fase",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:shopee-kyc-aprovado-encaminhar-fase-correspondente"
+      ]
+    },
+    {
+      "id": "kyc-aprovado-conexao-expirada",
+      "tag": "categoria:kyc-aprovado-conexao-expirada",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/15-kyc-aprovado-conexao-expirada.md",
+      "priority": 62,
+      "matcher": {
+        "signalsAll": [
+          "derived:kyc-approved-evidence",
+          "local:phase-pendente-shopee-kyc",
+          "derived:shopee-connection-expired"
+        ]
+      },
+      "requiredEvidence": [
+        "print ou banco com KYC/cadastro de vendedora aprovado (inspecionado, sem transcrever documentos)",
+        "journey_state.current_phase=pendente_shopee_kyc",
+        "stores.shopee_state oauth_failed/kyc_in_review com token vencido (data lida sem selecionar tokens) ou shopee_refresh_failed ao vivo",
+        "registro explicito de se houve ou nao consulta ao vivo",
+        "lane To test resolvida ao vivo"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "nota interna [interno] relida uma unica vez, sem afirmar consulta ao vivo inexistente",
+        "status To test resolvido ao vivo e relido",
+        "tags humanas preservadas + skill:analisado",
+        "nenhuma mensagem visivel para a aluna",
+        "link de reconexao confirmado: https://membros.escalashop.com.br/lojapronta/reconectar-shopee"
+      ],
+      "risks": [
+        "gleap_internal_write"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "state_change_via_sql",
+        "claim_live_check_not_performed"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "banco approved + oauth_failed + token vencido; print da aluna com cadastro validado (canario)",
+        "print com KYC validado, banco kyc_in_review/pending, token vencido, sem consulta ao vivo (repeticao)"
+      ],
+      "counterExamples": [
+        "consulta ao vivo incomplete -> kyc-cadastro-incompleto-shopee",
+        "consulta ao vivo pending -> kyc-pending-shopee-aguardar",
+        "aprovada ao vivo com conexao valida, parada em 1.1_perfil e shopee_kyc_status NULL -> fila sll-loja-shopee-em-verificacao-apos-kyc",
+        "shopee_binding_STATE_CONFLICT",
+        "aluna sem loja local (primeiro vinculo, tarefa 00)"
+      ],
+      "problemTag": "cat:15-kyc-aprovado-reconectar",
+      "defaultStatusTag": "skill:impedido",
+      "legacyTags": [
+        "categoria:kyc-aprovado-conexao-expirada"
+      ]
+    },
+    {
+      "id": "kyc-cadastro-incompleto-shopee",
+      "tag": "categoria:kyc-cadastro-incompleto-shopee",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/16-kyc-cadastro-incompleto-shopee.md",
+      "priority": 64,
+      "matcher": {
+        "signalsAll": [
+          "shopee:kyc-incomplete-live"
+        ]
+      },
+      "requiredEvidence": [
+        "consulta ao vivo real (com GO) sem erro retornando kyc=incomplete, sem shop_status",
+        "data/hora da consulta registrada",
+        "lane To test resolvida ao vivo"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "nota interna [interno] relida orientando concluir documento/selfie na Central do Vendedor",
+        "status To test resolvido ao vivo e relido",
+        "tags humanas preservadas + skill:analisado",
+        "nenhuma mensagem visivel para a aluna"
+      ],
+      "risks": [
+        "gleap_internal_write"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "state_change_via_sql"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "loja SLL em 1.1_perfil com card 'Em verificacao'; ao vivo incomplete (canario)",
+        "loja LP em 2.4 com banco incomplete; aluna diz que concluiu; ao vivo incomplete (repeticao)"
+      ],
+      "counterExamples": [
+        "incomplete apenas no banco, sem consulta ao vivo",
+        "consulta ao vivo com shopee_refresh_failed",
+        "consulta ao vivo pending ou approved"
+      ],
+      "problemTag": "cat:16-kyc-incompleto",
+      "defaultStatusTag": "skill:impedido",
+      "legacyTags": [
+        "categoria:kyc-cadastro-incompleto-shopee"
+      ]
+    },
+    {
+      "id": "kyc-pending-shopee-aguardar",
+      "tag": "categoria:kyc-pending-shopee-aguardar",
+      "kind": "support",
+      "status": "draft",
+      "task": "tarefas/17-kyc-pending-shopee-aguardar.md",
+      "priority": 66,
+      "matcher": {
+        "signalsAll": [
+          "shopee:kyc-pending-live"
+        ]
+      },
+      "requiredEvidence": [
+        "consulta ao vivo real (com GO) sem erro retornando kyc=pending (onboarding_passed=false)",
+        "elegibilidade ao poller conferida no banco antes de prometer atualizacao automatica"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "ticket mantido no status atual, sem write externo",
+        "report registra resultado ao vivo, elegibilidade ao poller e proxima checagem"
+      ],
+      "confidence": "low",
+      "positiveExamples": [
+        "ao vivo pending (onb=4, passed=false) com e-mail da Shopee 'registro sendo processado'"
+      ],
+      "counterExamples": [
+        "pending apenas no banco, sem consulta ao vivo",
+        "consulta ao vivo incomplete ou com erro de refresh"
+      ],
+      "problemTag": "cat:17-kyc-pending",
+      "defaultStatusTag": "skill:impedido",
+      "legacyTags": [
+        "categoria:kyc-pending-shopee-aguardar"
       ]
     },
     {
@@ -587,7 +1163,15 @@
         "caso ilustrativo"
       ],
       "counterExamples": [
-        "acesso nao provisionado antes do KYC"
+        "acesso nao provisionado antes do KYC",
+        "KYC aprovado com conexao expirada -> kyc-aprovado-conexao-expirada",
+        "consulta ao vivo incomplete -> kyc-cadastro-incompleto-shopee",
+        "consulta ao vivo pending -> kyc-pending-shopee-aguardar"
+      ],
+      "problemTag": "cat:00-avancar-etapa-kyc",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:avancar-etapa-kyc"
       ]
     },
     {
@@ -618,6 +1202,11 @@
       ],
       "counterExamples": [
         "refund confirmado que exige cleanup"
+      ],
+      "problemTag": "cat:00-fase-travada",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:fase-travada"
       ]
     },
     {
@@ -648,7 +1237,573 @@
       ],
       "counterExamples": [
         "erro tecnico reproduzivel"
+      ],
+      "problemTag": "cat:00-acelerar-processo",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:acelerar-processo"
+      ]
+    },
+    {
+      "id": "troca-email-titular-plataforma",
+      "tag": "categoria:troca-email-titular-plataforma",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/24-troca-email-titular-plataforma.md",
+      "priority": 58,
+      "matcher": {
+        "textRegex": [
+          "troca(r)?\\s+(de\\s+)?e-?mail",
+          "transferir\\s+para\\s+(o\\s+)?e-?mail",
+          "mudar\\s+(o\\s+)?e-?mail"
+        ]
+      },
+      "requiredEvidence": [
+        "texto e notas do ticket lidos",
+        "conta atual e existência de conta no e-mail novo conferidas por SELECT"
+      ],
+      "approval": "owner-standing-go",
+      "verification": [
+        "nota interna [interno] relida",
+        "status To test e tags separados e relidos",
+        "nenhuma mensagem visível"
+      ],
+      "risks": [
+        "gleap_internal_write",
+        "new_email_taken"
+      ],
+      "prohibitions": [
+        "customer_message",
+        "ticket_done",
+        "state_change_via_sql",
+        "shopee_write",
+        "merge_accounts"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "#6133: trocar o e-mail da conta para o do marido; e-mail novo sem conta"
+      ],
+      "counterExamples": [
+        "trocar e-mail na Hotmart, GHL ou Shopee",
+        "juntar duas contas"
+      ],
+      "problemTag": "cat:24-troca-email-titular",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:troca-email"
+      ]
+    },
+    {
+      "id": "conta-shopee-errada",
+      "tag": "categoria:conta-shopee-errada",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/34-conta-shopee-errada.md",
+      "priority": 39,
+      "matcher": {
+        "textRegex": [
+          "conta\\s+(da\\s+)?shopee\\s+(errada|do\\s+(meu\\s+)?(marido|esposo|esposa|pai|m[aã]e|irm[aã]o?|filh[oa]))",
+          "conect(ei|ou|ada|ado).*(conta|shopee).*(errada|marido|esposo|esposa|familiar)",
+          "(trocar|mudar|alterar)\\s+(a\\s+)?conta\\s+(da\\s+)?shopee\\s+(conectada|vinculada)"
+        ]
+      },
+      "requiredEvidence": [
+        "loja LP e conexao Shopee atual identificadas (shop_id e titular da conta conectada)",
+        "relato ou print mostrando que a conta conectada e de outra pessoa (ex.: familiar)",
+        "loja ainda sem nenhuma publicacao na Shopee",
+        "aluna tem conta de vendedora Shopee propria para reconectar"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "conta Shopee errada desconectada e OAuth refeito com a conta da aluna (somente com GO do Caio)",
+        "shop_id da nova conexao confere com a conta da aluna",
+        "nota interna [interno] relida e status resolvido ao vivo",
+        "nenhuma mensagem visivel para a aluna sem GO"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "9695: Loja Pronta conectada na conta Shopee do marido, loja ainda sem publicacao"
+      ],
+      "counterExamples": [
+        "loja ja publicou anuncios na conta conectada (exige decisao do dono)",
+        "troca de conta CPF -> CNPJ da propria aluna (fila:titular-errado)",
+        "shop_id divergente sem conta de terceiro -> cat:23-shop-id-divergente",
+        "troca do e-mail titular na plataforma -> cat:24-troca-email-titular"
+      ],
+      "problemTag": "cat:34-conta-shopee-errada",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:conta-shopee-errada",
+        "cat:00-conta-shopee-errada"
+      ],
+      "solution": "tarefas/34-conta-shopee-errada.md (canônico: known-case \"Loja conectada na conta Shopee errada\"): desconectar conta de terceiro e refazer OAuth; GO obrigatório."
+    },
+    {
+      "id": "loja-sem-identidade-fase1",
+      "tag": "categoria:loja-sem-identidade-fase1",
+      "kind": "playbook",
+      "status": "draft",
+      "task": "tarefas/35-loja-sem-identidade-fase1.md",
+      "priority": 42,
+      "matcher": {
+        "signalsAll": [
+          "derived:store-stuck-3.1-aguardando-publicacao",
+          "derived:publishing-never-queued",
+          "derived:store-without-logo-and-description"
+        ]
+      },
+      "requiredEvidence": [
+        "loja parada em 3.1_aguardando_publicacao com produtos pending e nada publicado",
+        "publishing_started_at nulo e nada em wave_job_queue/wave_batch_run",
+        "stores.logo_url e description nulos, perfil_inputs/identity_inputs vazios e sem generation_runs",
+        "rotina NT-007 (atraso) seguida antes"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "logo e descricao gerados e loja publicada wave a wave (somente com GO do Caio)",
+        "nota interna [interno] relida e ticket em To test",
+        "nenhuma mensagem visivel para a aluna sem GO"
+      ],
+      "confidence": "medium",
+      "owner": "Caio (NT-008 com a Atualizacao de 2026-10-04 15h17: solucao decidida, NAO executar agora)",
+      "positiveExamples": [
+        "8067: loja em 3.1 desde 13/09 sem logo nem descricao, OAuth levou direto ao KYC (pulou a Fase 1)"
+      ],
+      "counterExamples": [
+        "loja com identidade completa que ja entrou na fila de publicacao",
+        "token Shopee expirado -> cat:18-sessao-expirada",
+        "KYC pendente -> cat:17-kyc-pending"
+      ],
+      "problemTag": "cat:35-loja-sem-identidade-fase1",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:loja-sem-identidade-fase1",
+        "cat:00-loja-sem-identidade-fase1"
+      ],
+      "solution": "tarefas/35-loja-sem-identidade-fase1.md (canônico: NT-008). Suspenso até GO + rota Vercel."
+    },
+    {
+      "id": "anuncio-ativo-nao-aparece",
+      "tag": "categoria:anuncio-ativo-nao-aparece",
+      "kind": "playbook",
+      "status": "draft",
+      "task": "tarefas/07-shopee-baniu-excluiu.md",
+      "priority": 54,
+      "matcher": {
+        "textRegex": [
+          "an[uú]ncios?.*(n[aã]o\\s+aparece|sumi(u|ram)|n[aã]o\\s+(est[aã]o|consigo\\s+ver))",
+          "produtos?.*(n[aã]o\\s+aparece|sumi(u|ram)).*(loja|shopee)"
+        ],
+        "signalsAll": [
+          "derived:shopee-probe-all-items-normal"
+        ]
+      },
+      "requiredEvidence": [
+        "sondagem ao vivo na Shopee (tarefa 07, Passo 1) dos itens da loja",
+        "item_status lido conforme o Passo 2: todos NORMAL (no ar)",
+        "anuncio citado pela aluna identificado ou ausencia de identificador registrada"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "nota interna [interno] no modelo 5a da tarefa 07 relida uma unica vez",
+        "nenhuma republicacao e nenhuma escrita na Shopee",
+        "nenhuma mensagem visivel para a aluna"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "6576: anuncios ativos que nao aparecem na loja"
+      ],
+      "counterExamples": [
+        "SHOPEE_DELETE ou BANNED confirmado -> cat:07-shopee-baniu-excluiu / cat:11-repor-anuncio",
+        "REVIEWING ou SELLER_DELETE (ver Passo 2 da tarefa 07)",
+        "classificacao feita so por store_products.shopee_item_status, sem sondar"
+      ],
+      "problemTag": "cat:07-anuncio-ativo-nao-aparece",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:anuncio-ativo-nao-aparece",
+        "categoria:anuncios-nao-visiveis"
+      ],
+      "solution": "tarefas/07-shopee-baniu-excluiu.md, Passo 1 (sondar a Shopee ao vivo), Passo 2 (ler item_status: NORMAL = esta no ar, nao republicar) e modelo de nota 5a (sondagem mostrou tudo NORMAL): nota interna pedindo que a aluna aponte o anuncio que nao encontra; a sondagem depende da rota com IP fixo (NT-001)."
+    },
+    {
+      "id": "shopee-suporte",
+      "tag": "categoria:shopee-suporte",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/25-shopee-fora-escopo-suporte.md",
+      "priority": 40,
+      "matcher": {
+        "textRegex": [
+          "(cpf|cnpj).*(conta|loja|shopee)",
+          "(conta|loja).*shopee.*(cpf|cnpj|titular|documento)",
+          "(prazo|regra|pol[ií]tica|documento|documenta[cç][aã]o).*shopee",
+          "central\\s+do\\s+vendedor"
+        ]
+      },
+      "requiredEvidence": [
+        "ticket lido por inteiro, inclusive a conversa vinculada",
+        "pergunta ou problema e da Shopee e nao depende de codigo, dados ou integracao da Escala Shop"
+      ],
+      "approval": "owner-standing-go",
+      "verification": [
+        "nota interna [interno] para o suporte relida",
+        "tags skill:analisado, encaminhado:suporte e cat:25-shopee-suporte conferidas",
+        "status To test conferido ao vivo",
+        "nenhuma mensagem visivel para a aluna sem GO"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "8561: loja criada na conta Shopee do CNPJ, aluna queria a do CPF; encaminhado ao suporte"
+      ],
+      "counterExamples": [
+        "conta Shopee de familiar conectada -> cat:00-conta-shopee-errada",
+        "KYC, publicacao, sessao expirada, shop_id divergente, imagem recusada, erro fiscal -> categorias tecnicas proprias"
+      ],
+      "problemTag": "cat:25-shopee-suporte",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:shopee-suporte"
+      ],
+      "solution": "references/known-case-solutions.md, secao \"Duvida ou problema da Shopee fora da estrutura tecnica\": nao e caso tecnico; To test com nota interna pedindo que o suporte oriente a aluna (e trate reembolso, se houver). Decisao do Caio em ligacao (2026-10-04)."
+    },
+    {
+      "id": "troca-fornecedor-reset-selecao",
+      "tag": "categoria:troca-fornecedor",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/26-troca-fornecedor-reset-selecao.md",
+      "priority": 41,
+      "matcher": {
+        "textRegex": [
+          "troca(r)?\\s+(de\\s+)?fornecedor",
+          "fornecedor\\s+(errado|incorreto)",
+          "reset(ar)?\\s+(de\\s+)?(sele[cç][aã]o|cat[aá]logo).*fornecedor",
+          "montar\\s+stockshop"
+        ]
+      },
+      "requiredEvidence": [
+        "loja, conexao Shopee e fornecedor atual dos store_products confirmados (SELECT)",
+        "contagem ao vivo de NORMAL do fornecedor errado (items-status/store-diagnosis)",
+        "autorizacao do Caio para limpar catalogo / devolver a selecao"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "catalogo/fornecedor limpos no DB sem desconectar Shopee",
+        "anuncios do fornecedor errado ausentes ao vivo (se havia)",
+        "fase devolvida a selecao de fornecedor/produtos",
+        "nota interna + To test + tags cat:26-troca-fornecedor"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "#8517 / #8699: Elétrica Niterói → aluna escolhe StockShop de novo"
+      ],
+      "counterExamples": [
+        "remount/publicar waves do fornecedor novo pela gente",
+        "desconectar Shopee ou arquivar LP"
+      ],
+      "problemTag": "cat:26-troca-fornecedor",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "categoria:troca-fornecedor",
+        "categoria:fornecedor-reset",
+        "categoria:fornecedor-incorreto",
+        "fila:troca-fornecedor"
+      ]
+    },
+    {
+      "id": "atraso-loja-publicacao",
+      "tag": "categoria:wave1-atrasada",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/27-atraso-loja-publicacao.md",
+      "priority": 36,
+      "matcher": {
+        "textRegex": [
+          "atraso.*(loja|publica[cç][aã]o|wave)",
+          "(loja|publica[cç][aã]o|wave).*(atrasad[oa]|demor)",
+          "ainda\\s+n[aã]o\\s+public"
+        ]
+      },
+      "requiredEvidence": [
+        "fase e waves lidas no banco",
+        "conexao Shopee e estado de publicacao conferidos"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "NT-007 seguida",
+        "nota + To test se ja publicou, ou publicacao so com GO se parado"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "reclamacao de atraso com loja ja publicada → so nota"
+      ],
+      "counterExamples": [
+        "pedido de estorno por demora → cat:29-reembolso-por-demora"
+      ],
+      "problemTag": "cat:27-wave1-atrasada",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "fila:wave1-atrasada",
+        "categoria:wave1-atrasada"
+      ]
+    },
+    {
+      "id": "origin-measure-unit",
+      "tag": "categoria:origin-measure-unit",
+      "kind": "playbook",
+      "status": "draft",
+      "task": "tarefas/28-origin-measure-unit.md",
+      "priority": 43,
+      "matcher": {
+        "textRegex": [
+          "ORIGIN.?MEASURE_UNIT",
+          "MEASURE_UNIT",
+          "tax_info|NCM.*(origem|origin)"
+        ]
+      },
+      "requiredEvidence": [
+        "erro fiscal ORIGIN/MEASURE_UNIT reproduzido ou citado",
+        "produto/fornecedor identificados"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "enquanto suspenso: nenhum backfill/republicacao"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "StockShop com tax_info so NCM"
+      ],
+      "counterExamples": [
+        "erro de imagem/categoria → outras categorias"
+      ],
+      "problemTag": "cat:28-origin-measure-unit",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "fila:origin-measure-unit",
+        "categoria:ncm-origem-ausentes",
+        "categoria:cadastro-fiscal-produto"
+      ]
+    },
+    {
+      "id": "reembolso-por-demora",
+      "tag": "categoria:reembolso-por-demora",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/29-reembolso-por-demora.md",
+      "priority": 37,
+      "matcher": {
+        "textRegex": [
+          "reembolso.*demora|estorno.*demora|reclame\\s+aqui.*atraso",
+          "demora.*(reembolso|estorno)"
+        ]
+      },
+      "requiredEvidence": [
+        "pedido de estorno/RA ligado a demora do ticket",
+        "estado da loja lido (NT-007)"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "NT-007 aplicada antes de encaminhar reembolso",
+        "nota + To test"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "RA pedindo estorno por demora do atendimento"
+      ],
+      "counterExamples": [
+        "refunded-cleanup / chargeback → tarefas 04/06"
+      ],
+      "problemTag": "cat:29-reembolso-por-demora",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "fila:reembolso-por-demora",
+        "categoria:reembolso-atraso"
+      ]
+    },
+    {
+      "id": "exclusao-loja-bloqueada",
+      "tag": "categoria:exclusao-loja",
+      "kind": "playbook",
+      "status": "draft",
+      "task": "tarefas/30-exclusao-loja-bloqueada.md",
+      "priority": 44,
+      "matcher": {
+        "textRegex": [
+          "exclu(ir|sao).*loja",
+          "desvincul(ar|acao).*loja",
+          "em processo de configura[cç][aã]o da Loja Pronta"
+        ]
+      },
+      "requiredEvidence": [
+        "perfil SLL confirmado",
+        "sintoma do guardrail LP"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "enquanto suspenso: sem exclusao forçada"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "#10014"
+      ],
+      "counterExamples": [
+        "desconectar Shopee com LP ativa → known-case #4319 / tarefa 34"
+      ],
+      "problemTag": "cat:30-exclusao-loja-bloqueada",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "fila:exclusao-loja-bloqueada",
+        "categoria:exclusao-loja"
+      ]
+    },
+    {
+      "id": "trafego-bloqueado-novo-item",
+      "tag": "categoria:trafego-bloqueado",
+      "kind": "playbook",
+      "status": "draft",
+      "task": "tarefas/31-trafego-bloqueado.md",
+      "priority": 46,
+      "matcher": {
+        "textRegex": [
+          "tr[aá]fego\\s+bloqueado",
+          "bloqueado\\s+para\\s+novo\\s+item",
+          "90\\s+dias.*(tr[aá]fego|an[uú]ncio)"
+        ]
+      },
+      "requiredEvidence": [
+        "aviso de trafego bloqueado nos anuncios",
+        "loja/itens identificados"
+      ],
+      "approval": "no-external-write",
+      "verification": [
+        "enquanto suspenso: sem movimentar ticket"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "#5494"
+      ],
+      "counterExamples": [
+        "banimento real SHOPEE_DELETE/BANNED → tarefa 07/11"
+      ],
+      "problemTag": "cat:31-trafego-bloqueado",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "fila:trafego-bloqueado",
+        "categoria:trafego-bloqueado"
+      ]
+    },
+    {
+      "id": "ajuste-generico-sem-defeito",
+      "tag": "categoria:ajuste-generico",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/32-ajuste-generico.md",
+      "priority": 72,
+      "matcher": {
+        "textRegex": [
+          "ajustar\\s+an[uú]ncio",
+          "corrigir\\s+(a\\s+)?imagem",
+          "otimizador.*(recomend|melhor)"
+        ]
+      },
+      "requiredEvidence": [
+        "ticket sem alvo/defeito claro ou so recomendacao do Otimizador"
+      ],
+      "approval": "owner-standing-go",
+      "verification": [
+        "nota pedindo link/o que esta errado/esperado",
+        "To test",
+        "sem alteracao de anuncio"
+      ],
+      "confidence": "high",
+      "positiveExamples": [
+        "ticket so com 'ajustar anuncio'"
+      ],
+      "counterExamples": [
+        "defeito de foto IA identificado → tarefa 05"
+      ],
+      "problemTag": "cat:32-ajuste-generico",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "fila:ajuste-generico"
+      ]
+    },
+    {
+      "id": "curso-etapa-oculta",
+      "tag": "categoria:curso-etapa3-oculta",
+      "kind": "playbook",
+      "status": "validated",
+      "task": "tarefas/33-curso-etapa3-oculta.md",
+      "priority": 73,
+      "matcher": {
+        "textRegex": [
+          "(m[oó]dulo|etapa|aula).*(n[aã]o\\s+aparece|ocult|sumiu)",
+          "curso.*(n[aã]o\\s+aparece|travad)"
+        ]
+      },
+      "requiredEvidence": [
+        "print ou relato do modulo/etapa ausente"
+      ],
+      "approval": "owner-go",
+      "verification": [
+        "rotina da tarefa 00 seguida",
+        "To test apos republicacao quando couber"
+      ],
+      "confidence": "medium",
+      "positiveExamples": [
+        "modulo do curso oculto no player"
+      ],
+      "counterExamples": [
+        "SLL etapa 2 bloqueada sem regra → fila:sll-etapa2 pendente"
+      ],
+      "problemTag": "cat:33-curso-etapa3-oculta",
+      "defaultStatusTag": "skill:analisado",
+      "legacyTags": [
+        "fila:curso-etapa3-oculta"
       ]
     }
-  ]
+  ],
+  "tagging": {
+    "version": 3,
+    "approvedBy": "Caio, 2026-10-04 12:45 BRT; modelo v2 aprovado em 2026-10-04; modelo v4 (estado do ticket em tag + nota) aprovado em 2026-10-05 13h20 BRT",
+    "statusTags": [
+      "skill:analisado",
+      "skill:impedido",
+      "skill:executado"
+    ],
+    "statusTagMeaning": {
+      "skill:analisado": "ticket ja analisado e categorizado (tem cat:/fila:). O estado do ticket vive nas tags do Gleap (modelo v4), nao no SQLite",
+      "skill:impedido": "depende de algo externo (aluna, Shopee, correcao de codigo, rota). O motivo vai na nota '[interno] Impedido: ... Falta: ...'. Aparece nos Travados e e avisado ao Caio todo dia ate resolver",
+      "skill:executado": "a skill fez a parte dela (nota '[interno] Resolvido: ...' + To test), inclusive quando a correcao veio pelo Cursor. Unica troca permitida: skill:impedido <-> skill:executado (decisao do Caio, 2026-10-05)"
+    },
+    "problemTagPatterns": {
+      "playbook": "^cat:[0-9]{2}-[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "queue": "^fila:[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "categoryWithoutTaskPrefix": "00",
+    "legacyStatusTags": {
+      "skill:aguardando-owner": "skill:analisado",
+      "skill:tbd": "skill:analisado"
+    },
+    "legacySkillTagsToConvert": {
+      "skill:nao-e-aluna-lp": "cat:00-nao-e-aluna-lp",
+      "skill:bug-fixed": "bug:fixed",
+      "skill:bug-fixed-pending-validation": "bug:fixed-pending-validation"
+    },
+    "auxiliaryDetailPrefix": "detalhe:",
+    "legacyCategoryPrefix": "categoria:",
+    "staleAfterDays": 7,
+    "staleRule": "ticket parado = sem atividade (mensagem ou alteracao de aluna/equipe) ha staleAfterDays dias ou mais; espera pelo dono e travamentos saem do painel ao vivo (commands/sync-index.py): categorias pendentes, skill:impedido, com_go e suspenso",
+    "deprecatedStatusTags": {
+      "skill:aguardando-dono": "descontinuada em 04/10/2026: a espera pelo dono e a categoria pendente no SQLite (v_pendentes). Nao aplicar em ticket novo; NAO remover dos tickets que ja tem (leitura: equivale a skill:analisado)"
+    },
+    "sourceOfTruth": "Estado do ticket: Gleap (tags skill:* + ultima nota [interno]), lido ao vivo. Catalogo: SQLite /home/box/agent-data/gleap-index/suporte.sqlite (categorias.status pendente/documentado, categorias.execucao sozinho/com_go/suspenso, via_cursor, aliases). O campo status deste catalogo (draft/validated/active) e so historico/informativo",
+    "stateSwapRule": "A skill so pode TROCAR skill:impedido <-> skill:executado (reler, enviar a uniao sem a tag trocada, reler, apply-log). Nenhuma outra tag sai. Nota + tag de estado e GO permanente em qualquer categoria (sem mudar status, sem producao, sem mensagem a aluna).",
+    "notePrefixes": {
+      "impedido": "[interno] Impedido: <o que trava>. Falta: <o que e de quem>.",
+      "resolvido": "[interno] Resolvido: <o que foi feito>. Suporte: <o que falar com a aluna>.",
+      "reanalisado": "[interno] Reanalisado: <o que mudou ou 'sem mudanca'>."
+    }
+  }
 }
